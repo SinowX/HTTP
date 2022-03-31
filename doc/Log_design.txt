@@ -1,0 +1,43 @@
+# Logger Design
+
+```mermaid
+sequenceDiagram
+Macro<< -->> Logger : return stream interface
+Logger -->> LoggerStream : Overload operator<<
+
+LoggerStream -->> Buffer : write to buffer, spinning lock 
+Buffer -->> Buffer : swap buffer
+Buffer -->> Disk : persistent
+
+```
+
+
+
+## Class Diagram
+
+```mermaid
+classDiagram
+class Logger {
+	LogStream stream
+	uint_8 level
+}
+
+class LogStream {
+	operator<< ()
+}
+
+class LogBuffer {
+	std::unique<std::vector<char>> buffer_main
+	std::unique<std::vector<char>> buffer_back
+	pthread_mutex lock_main
+	pthread_mutex lock_back
+	- swapBuffer()
+	- writeDisk()
+	+ writeBuffer()
+}
+
+Logger --* LogStream
+LogBuffer --* FD
+LogStream --* LogBuffer
+```
+
